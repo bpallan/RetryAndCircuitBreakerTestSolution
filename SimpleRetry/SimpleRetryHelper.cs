@@ -7,6 +7,11 @@ namespace SimpleRetry
     {
         public static void Execute(int numberOfRetries, TimeSpan delayMs, Action action)
         {
+            ExecuteAsync(numberOfRetries, delayMs, () => Task.Run(action)).Wait();
+        }
+
+        public static async Task ExecuteAsync(int numberOfRetries, TimeSpan delayMs, Func<Task> action)
+        {
             var attempts = 0;
 
             do
@@ -14,17 +19,17 @@ namespace SimpleRetry
                 try
                 {
                     attempts++;
-                    action();
+                    await action();
                     break;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     if (attempts > numberOfRetries)
                     {
                         throw;
                     }
 
-                    Task.Delay(delayMs).Wait();
+                    await Task.Delay(delayMs);
                 }
 
             } while (true);

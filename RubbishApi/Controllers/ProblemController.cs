@@ -10,17 +10,18 @@ namespace RubbishApi.Controllers
     [ApiController]
     public class ProblemController : ControllerBase
     {
-        private static int _errorCount = 0;
+        private static int _executionCount = 0;
 
         // GET api/values/5
         [HttpGet("{problem}")]
-        public async Task<ActionResult<string>> Get(string problem)
+        public ActionResult<string> Get(string problem)
         {
+            _executionCount++;
+
             if (string.Equals(problem, "temperror", StringComparison.InvariantCultureIgnoreCase))
             {
-                if (_errorCount % 2 == 0)
+                if (_executionCount % 2 == 0)
                 {
-                    _errorCount++;
                     return BadRequest("Something was wrong!");
                 }
             }
