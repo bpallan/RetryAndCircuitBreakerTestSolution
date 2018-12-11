@@ -5,12 +5,12 @@ namespace SimpleRetry
 {
     public static class SimpleRetryHelper
     {
-        public static void Execute(int numberOfRetries, TimeSpan delayMs, Action action)
+        public static void Execute(int numberOfRetries, TimeSpan delay, Action action)
         {
-            ExecuteAsync(numberOfRetries, delayMs, () => Task.Run(action)).Wait();
+            ExecuteAsync(numberOfRetries, delay, () => Task.Run(action)).Wait();
         }
 
-        public static async Task ExecuteAsync(int numberOfRetries, TimeSpan delayMs, Func<Task> action)
+        public static async Task ExecuteAsync(int numberOfRetries, TimeSpan delay, Func<Task> action)
         {
             var attempts = 0;
 
@@ -29,7 +29,7 @@ namespace SimpleRetry
                         throw;
                     }
 
-                    await Task.Delay(delayMs);
+                    await Task.Delay(delay);
                 }
 
             } while (true);
