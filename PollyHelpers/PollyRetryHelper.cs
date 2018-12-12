@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Polly;
 
-namespace PollyRetry
+namespace PollyHelpers
 {
     public class PollyRetryHelper
     {
@@ -15,7 +14,7 @@ namespace PollyRetry
         public static async Task ExecuteAsync(int numberOfRetries, TimeSpan delay, Func<Task> action)
         {
             var retryPolicy = Policy
-                .Handle<Exception>() // use HttpRequestException if you only care about http errors
+                .Handle<Exception>() // use HttpRequestException or call .HandleTransientHttpError if you only care about http errors
                 .WaitAndRetryAsync(numberOfRetries, i => delay);
 
             await retryPolicy.ExecuteAsync(async () => { await action(); });

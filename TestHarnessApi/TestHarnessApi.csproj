@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PollyRetry\PollyRetry.csproj" />
+    <ProjectReference Include="..\PollyHelpers\PollyHelpers.csproj" />
     <ProjectReference Include="..\SimpleRetry\SimpleRetry.csproj" />
   </ItemGroup>
 

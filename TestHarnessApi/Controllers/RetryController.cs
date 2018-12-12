@@ -5,9 +5,10 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PollyRetry;
+using PollyHelpers;
 using SimpleRetry;
 
+// https://alastaircrabtree.com/implementing-the-retry-pattern-using-polly/
 namespace TestHarnessApi.Controllers
 {    
     [Route("api/retry")]
