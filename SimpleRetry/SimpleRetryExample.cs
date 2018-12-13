@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace SimpleRetry
 {
-    public static class SimpleRetryHelper
+    public static class SimpleRetryExample
     {
         public static void Execute(int numberOfRetries, TimeSpan delay, Action action)
         {

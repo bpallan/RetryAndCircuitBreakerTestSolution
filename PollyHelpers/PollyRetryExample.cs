@@ -4,7 +4,7 @@ using Polly;
 
 namespace PollyHelpers
 {
-    public class PollyRetryHelper
+    public class PollyRetryExample
     {
         public static void Execute(int numberOfRetries, TimeSpan delay, Action action)
         {

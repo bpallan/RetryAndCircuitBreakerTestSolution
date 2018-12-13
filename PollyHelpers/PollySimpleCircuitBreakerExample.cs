@@ -6,34 +6,32 @@ using Polly;
 
 namespace PollyHelpers
 {
-    public class PollyCircuitBreakerHelper
+    public class PollySimpleCircuitBreakerExample
     {
         private readonly Policy _circuitBreaker;
 
-        public PollyCircuitBreakerHelper(int numberOfFailures, TimeSpan delay, Func<Task> fallback = null)
+        public PollySimpleCircuitBreakerExample(int numberOfFailures, TimeSpan delay)
         {
-            var circuitBreaker = Policy
+            _circuitBreaker = Policy
                 .Handle<Exception>() // use HttpRequestException or call .HandleTransientHttpError if you only care about http errors
-                .CircuitBreakerAsync(numberOfFailures, delay);
+                .CircuitBreakerAsync(numberOfFailures, delay);            
+        }
 
+        public async Task ExecuteAsync(Func<Task> action, Func<Task> fallback = null)
+        {
             if (fallback != null)
             {
                 var fallbackWrapper = Policy
                     .Handle<Exception>()
                     .FallbackAsync(async i => { await fallback(); })
-                    .WrapAsync(circuitBreaker);
+                    .WrapAsync(_circuitBreaker);
 
-                _circuitBreaker = fallbackWrapper;
+                await fallbackWrapper.ExecuteAsync(async () => { await action(); });
             }
             else
             {
-                _circuitBreaker = circuitBreaker;
-            }
-        }
-
-        public async Task ExecuteAsync(Func<Task> action)
-        {
-            await _circuitBreaker.ExecuteAsync(async () => { await action(); });
+                await _circuitBreaker.ExecuteAsync(async () => { await action(); });
+            }            
         }
     }
 }
