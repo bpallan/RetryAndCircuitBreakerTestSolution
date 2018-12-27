@@ -17,7 +17,7 @@ namespace PollyHelpers
                 .CircuitBreakerAsync(numberOfFailures, delay);            
         }
 
-        public async Task ExecuteAsync(Func<Task> action, Func<Task> fallback = null)
+        public async Task ExecuteAsync(Func<Task> action, Func<Task> fallback = null) // w/out fallback will throw a BrokenCircuitException while circuit is broken
         {
             if (fallback != null)
             {

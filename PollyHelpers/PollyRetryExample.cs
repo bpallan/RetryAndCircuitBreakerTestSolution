@@ -6,11 +6,6 @@ namespace PollyHelpers
 {
     public class PollyRetryExample
     {
-        public static void Execute(int numberOfRetries, TimeSpan delay, Action action)
-        {
-            ExecuteAsync(numberOfRetries, delay, () => Task.Run(action)).Wait();
-        }
-
         public static async Task ExecuteAsync(int numberOfRetries, TimeSpan delay, Func<Task> action)
         {
             var retryPolicy = Policy
