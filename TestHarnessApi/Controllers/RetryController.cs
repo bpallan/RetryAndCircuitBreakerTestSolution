@@ -21,7 +21,7 @@ namespace TestHarnessApi.Controllers
         {
             string response = "";
 
-            await SimpleRetryExample.ExecuteAsync(numberOfRetries: retries, delay: TimeSpan.FromMilliseconds(1000), action: async () => { response = await _client.GetStringAsync("http://localhost:16481/api/problem/temperror"); });
+            await SimpleRetryExample.ExecuteAsync(numberOfRetries: retries, delay: TimeSpan.FromMilliseconds(1000), action: async () => { response = await _client.GetStringAsync("http://localhost:16481/api/problem/errorsoften"); });
 
             return Ok(response);
         }
@@ -31,7 +31,7 @@ namespace TestHarnessApi.Controllers
         {
             string response = "";
 
-            await PollyRetryExample.ExecuteAsync(numberOfRetries: retries, delay: TimeSpan.FromMilliseconds(1000), action: async () => { response = await _client.GetStringAsync("http://localhost:16481/api/problem/temperror"); });
+            await PollyRetryExample.ExecuteAsync(numberOfRetries: retries, delay: TimeSpan.FromMilliseconds(1000), action: async () => { response = await _client.GetStringAsync("http://localhost:16481/api/problem/errorsoften"); });
 
             return Ok(response);
         }

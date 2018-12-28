@@ -12,19 +12,22 @@ namespace RubbishApi.Controllers
     {
         private static int _executionCount = 0;
 
-        // GET api/values/5
-        [HttpGet("{problem}")]
-        public ActionResult<string> Get(string problem)
+        [HttpGet("errorsoften")]
+        public ActionResult<string> ErrorsOften()
         {
             _executionCount++;
-
-            if (string.Equals(problem, "temperror", StringComparison.InvariantCultureIgnoreCase))
+            if (_executionCount % 2 == 0)
             {
-                if (_executionCount % 2 == 0)
-                {
-                    return BadRequest("Something was wrong!");
-                }
+                return BadRequest("Something was wrong!");
             }
+
+            return Guid.NewGuid().ToString();
+        }
+
+        [HttpGet("slow")]
+        public ActionResult<string> Slow()
+        {
+            Task.Delay(TimeSpan.FromSeconds(10)).Wait();
 
             return Guid.NewGuid().ToString();
         }

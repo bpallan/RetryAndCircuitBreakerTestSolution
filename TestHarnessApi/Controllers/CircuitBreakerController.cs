@@ -32,7 +32,7 @@ namespace TestHarnessApi.Controllers
                 await _simpleCircuitBreaker.ExecuteAsync(
                     action: async () =>
                     {
-                        response = await _client.GetStringAsync("http://localhost:16481/api/problem/temperror");
+                        response = await _client.GetStringAsync("http://localhost:16481/api/problem/errorsoften");
                     }
                 );
             }
@@ -52,7 +52,7 @@ namespace TestHarnessApi.Controllers
             await _simpleCircuitBreaker.ExecuteAsync(
                 action: async () =>
                 {
-                    response = await _client.GetStringAsync("http://localhost:16481/api/problem/temperror");
+                    response = await _client.GetStringAsync("http://localhost:16481/api/problem/errorsoften");
                 }
                 , fallback: async () => { await Task.Run(() => response = "Circuit is broken fallback!!!"); }
             );
