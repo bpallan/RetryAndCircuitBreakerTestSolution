@@ -22,6 +22,18 @@ namespace TestHarnessApi.Controllers
             
         }
 
+        [HttpGet("broken")]
+        public ActionResult<string> Broken()
+        {
+            return BadRequest("Something was wrong!");
+        }
+
+        [HttpGet("success")]
+        public ActionResult<string> Success()
+        {
+            return Ok(Guid.NewGuid().ToString());
+        }
+
         [HttpGet("simple")]
         public async Task<ActionResult<string>> Simple()
         {

@@ -5,13 +5,13 @@ using System.Text;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SimpleRetry;
+using PollyHelpers;
 using TestHarnessApi;
 
 namespace ResiliencyTests
 {
     [TestClass]
-    public class SimpleRetryExampleTests
+    public class PollyRetryExampleTests
     {
         private static string _url = "/api/retry";
         private static TestServer _server;
@@ -37,7 +37,7 @@ namespace ResiliencyTests
             catch (Exception e)
             {
                 throw e.InnerException;
-            }            
+            }
         }
 
         [TestMethod]
@@ -54,9 +54,9 @@ namespace ResiliencyTests
         {
             string response = "";
 
-            SimpleRetryExample.ExecuteAsync(numberOfRetries: retries, delay: TimeSpan.FromMilliseconds(1000), action: async () => { response = await _client.GetStringAsync(_url); }).Wait();
+            PollyRetryExample.ExecuteAsync(numberOfRetries: retries, delay: TimeSpan.FromMilliseconds(1000), action: async () => { response = await _client.GetStringAsync(_url); }).Wait();
 
             return response;
         }
-    }
+    }    
 }
