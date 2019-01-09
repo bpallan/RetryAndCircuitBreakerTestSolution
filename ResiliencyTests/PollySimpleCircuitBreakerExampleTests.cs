@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,59 +27,75 @@ namespace ResiliencyTests
         }
 
         [TestMethod]
-        public void ExecuteAsync_WhenApiReturnsError_CircuitIsBrokenNoFallback()
+        public async Task ExecuteAsync_WhenApiReturnsError_CircuitIsBrokenNoFallback()
         {
             // create circuit breaker (should be static in your application)
             PollySimpleCircuitBreakerExample circuitBreaker = new PollySimpleCircuitBreakerExample(numberOfFailures: 1, delay: TimeSpan.FromSeconds(3));
 
             // break circuit
-            CallApi(circuitBreaker, "broken");
+            await CallApi(circuitBreaker, "broken");
 
             // verify circuit breaker behavior
-            string result = CallApi(circuitBreaker, "broken");
+            string result = await CallApi(circuitBreaker, "broken");
 
             Assert.AreEqual("Circuit is broken!!!", result);
         }
 
         [TestMethod]
-        public void ExecuteAsync_WhenApiReturnsError_CircuitIsBrokenWithFallback()
+        public async Task ExecuteAsync_WhenApiReturnsError_CircuitIsBrokenWithFallback()
         {
-            // break circuit
+            // create circuit breaker (should be static in your application)
+            string fallbackresult = "";
+            PollySimpleCircuitBreakerExample circuitBreaker = new PollySimpleCircuitBreakerExample(numberOfFailures: 1, delay: TimeSpan.FromSeconds(3), fallback: async() => await Task.Run(() => fallbackresult = "default"));
 
-            // verify fallback is called
+            // break circuit
+            await CallApi(circuitBreaker, "broken");
+
+            // verify fallback is called.            
+            await CallApi(circuitBreaker, "broken");
+
+            Assert.AreEqual("default", fallbackresult);
         }
 
         [TestMethod]
-        public void ExecuteAsync_WhenApiIsSuccessfulAgain_CircuitIsOpened()
+        public async Task ExecuteAsync_WhenApiIsSuccessfulAgain_CircuitIsOpened()
         {
+            // create circuit breaker (should be static in your application)
+            PollySimpleCircuitBreakerExample circuitBreaker = new PollySimpleCircuitBreakerExample(numberOfFailures: 1, delay: TimeSpan.FromSeconds(3));
+
             // break circuit
+            await CallApi(circuitBreaker, "broken");
 
             // verify circuit breaker is broken
+            string result = await CallApi(circuitBreaker, "success");
+            Assert.AreEqual("Circuit is broken!!!", result);
 
             // wait
+            await Task.Delay(3000);
 
             // verify circuit is back online
+            result = await CallApi(circuitBreaker, "success");
+            Assert.AreNotEqual("Circuit is broken!!!", result);
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(result));
         }
 
-        private string CallApi(PollySimpleCircuitBreakerExample circuitBreaker, string action)
+        private async Task<string> CallApi(PollySimpleCircuitBreakerExample circuitBreaker, string action)
         {
             string response = "";
 
             try
             {
-                circuitBreaker.ExecuteAsync(
-                    action: async () =>
-                    {
-                        response = await _client.GetStringAsync($"{_url}/{action}");
-                    }
-                ).Wait();
-            }
-            catch (Exception ex) // if doing this async BrokenCircuitException will be your top level exception once circuit is broken
+                await circuitBreaker.ExecuteAsync(
+                    action: async () => { response = await _client.GetStringAsync($"{_url}/{action}"); }
+                );
+            }            
+            catch (BrokenCircuitException) // if calling this syncronous BrokenCircuitException will be your inner exception once circuit is broken
             {
-                if (ex.InnerException is BrokenCircuitException)
-                {
-                    response = "Circuit is broken!!!";
-                }
+                response = "Circuit is broken!!!";
+            }
+            catch (Exception)
+            {
+                response = "Exception from api call!!!";
             }
 
             return response;

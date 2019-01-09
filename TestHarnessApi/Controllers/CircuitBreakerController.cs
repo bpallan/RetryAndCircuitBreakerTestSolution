@@ -33,43 +33,5 @@ namespace TestHarnessApi.Controllers
         {
             return Ok(Guid.NewGuid().ToString());
         }
-
-        [HttpGet("simple")]
-        public async Task<ActionResult<string>> Simple()
-        {
-            string response = "";
-
-            try
-            {
-                await _simpleCircuitBreaker.ExecuteAsync(
-                    action: async () =>
-                    {
-                        response = await _client.GetStringAsync("http://localhost:16481/api/problem/errorsoften");
-                    }
-                );
-            }
-            catch (BrokenCircuitException)
-            {
-                response = "Circuit is broken!!!";
-            }            
-
-            return Ok(response);
-        }
-
-        [HttpGet("fallback")]
-        public async Task<ActionResult<string>> Fallback()
-        {
-            string response = "";
-
-            await _simpleCircuitBreaker.ExecuteAsync(
-                action: async () =>
-                {
-                    response = await _client.GetStringAsync("http://localhost:16481/api/problem/errorsoften");
-                }
-                , fallback: async () => { await Task.Run(() => response = "Circuit is broken fallback!!!"); }
-            );
-
-            return Ok(response);
-        }
     }
 }

@@ -33,7 +33,7 @@ namespace PollyHelpers
             }
         }
 
-        public async Task ExecuteAsync(Func<Task> action, Func<Task> fallback = null) 
+        public async Task ExecuteAsync(Func<Task> action) 
         {
             await _circuitBreakerPolicy.ExecuteAsync(async () => { await action(); });           
         }

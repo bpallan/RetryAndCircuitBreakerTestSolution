@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,35 +27,28 @@ namespace ResiliencyTests
 
         [TestMethod]
         [ExpectedException(typeof(HttpRequestException))]
-        public void ExecuteAsync_WhenRetriesZero_ThrowsException()
+        public async Task ExecuteAsync_WhenRetriesZero_ThrowsException()
         {
-            try
-            {
-                // call twice to ensure at least 1 call errors
-                CallApi(retries: 0);
-                CallApi(retries: 0);
-            }
-            catch (Exception e)
-            {
-                throw e.InnerException;
-            }            
+            // call twice to ensure at least 1 call errors
+            await CallApi(retries: 0);
+            await CallApi(retries: 0);
         }
 
         [TestMethod]
-        public void ExecuteAsync_WhenRetriesGreaterThanZero_ReturnsResult()
+        public async Task ExecuteAsync_WhenRetriesGreaterThanZero_ReturnsResult()
         {
             // call twice to ensure at least 1 call errors (and is handled by retry)
-            var response = CallApi(retries: 1); CallApi(retries: 1);
-            CallApi(retries: 1);
+            var response = await CallApi(retries: 1);
+            await CallApi(retries: 1);
 
             Assert.IsTrue(!string.IsNullOrWhiteSpace(response));
         }
 
-        private static string CallApi(int retries)
+        private static async Task<string> CallApi(int retries)
         {
             string response = "";
 
-            SimpleRetryExample.ExecuteAsync(numberOfRetries: retries, delay: TimeSpan.FromMilliseconds(1000), action: async () => { response = await _client.GetStringAsync(_url); }).Wait();
+            await SimpleRetryExample.ExecuteAsync(numberOfRetries: retries, delay: TimeSpan.FromMilliseconds(1000), action: async () => { response = await _client.GetStringAsync(_url); });
 
             return response;
         }
