@@ -69,12 +69,14 @@ namespace ResiliencyTests
             // verify circuit breaker is broken
             string result = await CallApi(circuitBreaker, "success");
             Assert.AreEqual("Circuit is broken!!!", result);
+            Assert.AreEqual(CircuitState.Open, circuitBreaker.CircuitBreakerState);
 
             // wait
             await Task.Delay(3000);
 
             // verify circuit is back online
             result = await CallApi(circuitBreaker, "success");
+            Assert.AreEqual(CircuitState.Closed, circuitBreaker.CircuitBreakerState);
             Assert.AreNotEqual("Circuit is broken!!!", result);
             Assert.IsTrue(!string.IsNullOrWhiteSpace(result));
         }

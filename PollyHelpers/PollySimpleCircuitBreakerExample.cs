@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Polly;
+using Polly.CircuitBreaker;
 
 namespace PollyHelpers
 {
@@ -12,30 +13,33 @@ namespace PollyHelpers
     /// </summary>
     public class PollySimpleCircuitBreakerExample
     {
-        private readonly Policy _circuitBreakerPolicy;
+        private readonly Policy _outerPolicy;
+        private readonly CircuitBreakerPolicy _innerPolicy;
 
         public PollySimpleCircuitBreakerExample(int numberOfFailures, TimeSpan delay, Func<Task> fallback = null) // w/out fallback will throw a BrokenCircuitException while circuit is broken
         {
-            Policy innerPolicy = Policy
+            _innerPolicy = Policy
                 .Handle<Exception>() // use HttpRequestException or call .HandleTransientHttpError if you only care about http errors
                 .CircuitBreakerAsync(numberOfFailures, delay);
 
             if (fallback != null)
             {
-                _circuitBreakerPolicy = Policy
+                _outerPolicy = Policy
                     .Handle<Exception>()
                     .FallbackAsync(async i => { await fallback(); })
-                    .WrapAsync(innerPolicy);
+                    .WrapAsync(_innerPolicy);
             }
             else
             {
-                _circuitBreakerPolicy = innerPolicy;
+                _outerPolicy = _innerPolicy;
             }
         }
 
+        public CircuitState CircuitBreakerState => _innerPolicy.CircuitState;
+
         public async Task ExecuteAsync(Func<Task> action) 
         {
-            await _circuitBreakerPolicy.ExecuteAsync(async () => { await action(); });           
+            await _outerPolicy.ExecuteAsync(async () => { await action(); });           
         }
     }
 }
