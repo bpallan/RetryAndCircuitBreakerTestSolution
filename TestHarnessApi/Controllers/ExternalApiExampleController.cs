@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ExternalApiProxy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Polly.CircuitBreaker;
 
 namespace TestHarnessApi.Controllers
 {
@@ -24,6 +25,34 @@ namespace TestHarnessApi.Controllers
             var result = await _client.GetSuccessfulResponse();
 
             return Ok(result);
+        }
+
+        [HttpGet("retry")]
+        public async Task<ActionResult<string>> Retry()
+        {
+            var result = await _client.GetUnreliableResponse();
+
+            return Ok(result);
+        }
+
+        [HttpGet("circuitbreaker")]
+        public async Task<ActionResult<string>> CircuitBreaker()
+        {
+            try
+            {
+                var result = await _client.GetFailureResponse();
+
+                return Ok(result);
+            }
+            catch (BrokenCircuitException)
+            {
+                return Ok("Circuit is broken.  Should do fallback behavior.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }            
         }
     }
 }

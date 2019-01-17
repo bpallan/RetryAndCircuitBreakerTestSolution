@@ -19,5 +19,19 @@ namespace ExternalApiProxy
 
             return response;
         }
+
+        public async Task<string> GetUnreliableResponse()
+        {
+            var response = await _httpClient.GetStringAsync(new Uri("api/external/unreliable", UriKind.Relative));
+
+            return response;
+        }
+
+        public async Task<string> GetFailureResponse()
+        {
+            var response = await _httpClient.GetStringAsync(new Uri("api/external/broken", UriKind.Relative));
+
+            return response;
+        }
     }
 }
