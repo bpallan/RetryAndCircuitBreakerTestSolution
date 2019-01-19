@@ -16,14 +16,20 @@ namespace TestHarnessApi.Controllers
     {
         private static readonly HttpClient _client = new HttpClient();
 
-        [HttpGet("{timeout?}")]
-        public async Task<ActionResult<string>> Get(int timeout = 5)
+        [HttpGet("slow")]
+        public async Task<ActionResult<string>> Slow()
         {
-            string response = "";
+            await Task.Delay(1000);
 
-            await PollyTimeoutExample.ExecuteAsync(timeout: TimeSpan.FromSeconds(timeout), action: async () => { response = await _client.GetStringAsync("http://localhost:16481/api/problem/slow"); });
+            return Ok(Guid.NewGuid().ToString());
+        }
 
-            return Ok(response);
+        [HttpGet("fast")]
+        public async Task<ActionResult<string>> Fast()
+        {
+            await Task.Delay(50);
+
+            return Ok(Guid.NewGuid().ToString());
         }
     }
 }
