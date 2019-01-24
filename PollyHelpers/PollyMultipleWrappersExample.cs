@@ -22,7 +22,7 @@ namespace PollyHelpers
     /// 7. if failure happens in stack and no fallback defined, then throw exception back to caller (exception will be based on which policy, if any catches the failure)
     /// 8. return result of successful call
     /// </summary>
-    public class PollyMultipleWrappersExample
+    public class PollyMultipleWrappersExample<T>
     {
         private static readonly MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
 
@@ -41,20 +41,20 @@ namespace PollyHelpers
         private static readonly PolicyWrap _policyWrapper = Policy.WrapAsync(_cachePolicy, _overallTimeoutPolicy, _retryPolicy,
             _circuitBreakerPolicy, _callTimeoutPolicy);
 
-        public async Task ExecuteAsync(Func<Task> action, Func<Task> fallback = null)
+        public async Task<T> ExecuteAsync(Func<Task<T>> action, string cacheKey, Func<Task<T>> fallback = null)
         {
             if (fallback != null)
             {
                 var fallbackWrapper = Policy
                     .Handle<Exception>()
-                    .FallbackAsync(async i => { await fallback(); })
+                    .FallbackAsync(context => fallback())
                     .WrapAsync(_policyWrapper);
 
-                await fallbackWrapper.ExecuteAsync(async () => { await action(); });
+                return await fallbackWrapper.ExecuteAsync(context => action(), new Context(cacheKey));
             }
             else
             {
-                await _policyWrapper.ExecuteAsync(async () => { await action(); });
+                return await _policyWrapper.ExecuteAsync(context => action(), new Context(cacheKey));
             }
         }
     }
