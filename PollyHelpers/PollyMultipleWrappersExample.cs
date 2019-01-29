@@ -29,14 +29,14 @@ namespace PollyHelpers
         private static readonly Policy _cachePolicy =
             Policy.CacheAsync(new MemoryCacheProvider(_cache), TimeSpan.FromSeconds(60));
 
-        private static readonly Policy _overallTimeoutPolicy = Policy.TimeoutAsync(TimeSpan.FromSeconds(30));
+        private static readonly Policy _overallTimeoutPolicy = Policy.TimeoutAsync(TimeSpan.FromSeconds(5));
 
-        private static readonly Policy _retryPolicy = Policy.Handle<Exception>().RetryAsync(1);
+        private static readonly Policy _retryPolicy = Policy.Handle<Exception>().RetryAsync(10);
 
         private static readonly Policy _circuitBreakerPolicy =
             Policy.Handle<Exception>().CircuitBreakerAsync(4, TimeSpan.FromSeconds(60));
 
-        private static readonly Policy _callTimeoutPolicy = Policy.TimeoutAsync(TimeSpan.FromSeconds(5));
+        private static readonly Policy _callTimeoutPolicy = Policy.TimeoutAsync(TimeSpan.FromMilliseconds(500));
 
         private static readonly PolicyWrap _policyWrapper = Policy.WrapAsync(_cachePolicy, _overallTimeoutPolicy, _retryPolicy,
             _circuitBreakerPolicy, _callTimeoutPolicy);
