@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Polly;
 using Polly.CircuitBreaker;
-using PollyHelpers;
+using Polly.Fallback;
 using TestHarnessApi;
 
 namespace ResiliencyTests
@@ -19,6 +20,13 @@ namespace ResiliencyTests
         private static TestServer _server;
         private static HttpClient _client;
 
+        // policy
+        // Important:  You must have 1 of these per circuit you want to manage.  Different actions passed through the same circuit breaker instance will share the same circuit.  
+        // for example, if api call 1 and api call 2 are independent, they should use different instances of this class to manage their circuits        
+        private static readonly CircuitBreakerPolicy _circuitBreaker = Policy
+            .Handle<Exception>() // use HttpRequestException or call .HandleTransientHttpError if you only care about http errors
+            .CircuitBreakerAsync(1, TimeSpan.FromSeconds(3));
+
         [ClassInitialize]
         public static void Initialize(TestContext context)
         {
@@ -29,14 +37,11 @@ namespace ResiliencyTests
         [TestMethod]
         public async Task ExecuteAsync_WhenApiReturnsError_CircuitIsBrokenNoFallback()
         {
-            // create circuit breaker (should be static in your application)
-            PollySimpleCircuitBreakerExample circuitBreaker = new PollySimpleCircuitBreakerExample(numberOfFailures: 1, delay: TimeSpan.FromSeconds(3));
-
             // break circuit
-            await CallApi(circuitBreaker, "broken");
+            await CallApi("broken");
 
             // verify circuit breaker behavior
-            string result = await CallApi(circuitBreaker, "broken");
+            string result = await CallApi("broken");
 
             Assert.AreEqual("Circuit is broken!!!", result);
         }
@@ -44,50 +49,43 @@ namespace ResiliencyTests
         [TestMethod]
         public async Task ExecuteAsync_WhenApiReturnsError_CircuitIsBrokenWithFallback()
         {
-            // create circuit breaker (should be static in your application)
-            string fallbackresult = "";
-            PollySimpleCircuitBreakerExample circuitBreaker = new PollySimpleCircuitBreakerExample(numberOfFailures: 1, delay: TimeSpan.FromSeconds(3), fallback: async() => await Task.Run(() => fallbackresult = "default"));
-
             // break circuit
-            await CallApi(circuitBreaker, "broken");
+            await CallApi("broken");
 
             // verify fallback is called.            
-            await CallApi(circuitBreaker, "broken");
+            string result = await CallApiWithFallback("broken", async() => await Task.Run(() => "default"));
 
-            Assert.AreEqual("default", fallbackresult);
+            Assert.AreEqual("default", result);
         }
 
         [TestMethod]
         public async Task ExecuteAsync_WhenApiIsSuccessfulAgain_CircuitIsOpened()
         {
-            // create circuit breaker (should be static in your application)
-            PollySimpleCircuitBreakerExample circuitBreaker = new PollySimpleCircuitBreakerExample(numberOfFailures: 1, delay: TimeSpan.FromSeconds(3));
-
             // break circuit
-            await CallApi(circuitBreaker, "broken");
+            await CallApi("broken");
 
             // verify circuit breaker is broken
-            string result = await CallApi(circuitBreaker, "success");
+            string result = await CallApi("success");
             Assert.AreEqual("Circuit is broken!!!", result);
-            Assert.AreEqual(CircuitState.Open, circuitBreaker.CircuitBreakerState);
+            Assert.AreEqual(CircuitState.Open, _circuitBreaker.CircuitState);
 
             // wait
             await Task.Delay(3000);
 
             // verify circuit is back online
-            result = await CallApi(circuitBreaker, "success");
-            Assert.AreEqual(CircuitState.Closed, circuitBreaker.CircuitBreakerState);
+            result = await CallApi("success");
+            Assert.AreEqual(CircuitState.Closed, _circuitBreaker.CircuitState);
             Assert.AreNotEqual("Circuit is broken!!!", result);
             Assert.IsTrue(!string.IsNullOrWhiteSpace(result));
         }
 
-        private async Task<string> CallApi(PollySimpleCircuitBreakerExample circuitBreaker, string action)
+        private async Task<string> CallApi(string action)
         {
             string response = "";
 
             try
             {
-                await circuitBreaker.ExecuteAsync(
+                await _circuitBreaker.ExecuteAsync(
                     action: async () => { response = await _client.GetStringAsync($"{_url}/{action}"); }
                 );
             }            
@@ -99,6 +97,18 @@ namespace ResiliencyTests
             {
                 response = "Exception from api call!!!";
             }
+
+            return response;
+        }
+
+        private async Task<string> CallApiWithFallback(string action, Func<Task<string>> fallback)
+        {
+            var fallbackWrapper = FallbackPolicy<string>
+                .Handle<Exception>()
+                .FallbackAsync(context => fallback())
+                .WrapAsync(_circuitBreaker);
+
+            string response = await fallbackWrapper.ExecuteAsync(context => _client.GetStringAsync($"{_url}/{action}"), new Context()); 
 
             return response;
         }

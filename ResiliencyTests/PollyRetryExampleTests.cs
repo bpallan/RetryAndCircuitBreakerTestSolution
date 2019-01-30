@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PollyHelpers;
+using Polly;
 using TestHarnessApi;
 
 namespace ResiliencyTests
@@ -17,6 +17,7 @@ namespace ResiliencyTests
         private static string _url = "/api/retry";
         private static TestServer _server;
         private static HttpClient _client;
+        
 
         [ClassInitialize]
         public static void Initialize(TestContext context)
@@ -46,9 +47,10 @@ namespace ResiliencyTests
 
         private static async Task <string> CallApi(int retries)
         {
-            string response = "";
-
-            await PollyRetryExample.ExecuteAsync(numberOfRetries: retries, delay: TimeSpan.FromMilliseconds(1000), action: async () => { response = await _client.GetStringAsync(_url); });
+            string response = await Policy
+                .Handle<Exception>() // use HttpRequestException or call .HandleTransientHttpError if you only care about http errors
+                .RetryAsync(retries)
+                .ExecuteAsync(context => _client.GetStringAsync(_url), new Context());
 
             return response;
         }
