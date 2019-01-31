@@ -9,7 +9,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Polly;
 using Polly.Caching.Memory;
-using PollyHelpers;
 using TestHarnessApi;
 
 namespace ResiliencyTests

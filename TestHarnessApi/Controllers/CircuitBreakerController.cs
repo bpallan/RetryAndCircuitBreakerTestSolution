@@ -5,8 +5,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Polly.CircuitBreaker;
-using PollyHelpers;
 
 namespace TestHarnessApi.Controllers
 {

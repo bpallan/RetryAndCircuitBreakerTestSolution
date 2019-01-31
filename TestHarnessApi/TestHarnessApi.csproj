@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ExternalApiProxy\ExternalApiProxy.csproj" />
-    <ProjectReference Include="..\PollyHelpers\PollyHelpers.csproj" />
     <ProjectReference Include="..\SimpleRetry\SimpleRetry.csproj" />
   </ItemGroup>
 

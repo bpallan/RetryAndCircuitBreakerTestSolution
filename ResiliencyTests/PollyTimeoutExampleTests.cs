@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Polly;
 using Polly.Timeout;
-using PollyHelpers;
 using TestHarnessApi;
 
 namespace ResiliencyTests
