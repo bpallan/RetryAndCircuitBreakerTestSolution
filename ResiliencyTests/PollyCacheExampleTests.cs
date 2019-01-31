@@ -38,8 +38,8 @@ namespace ResiliencyTests
         [TestMethod]
         public async Task ExecuteAsync_WhenDataExistsInCache_ReturnsCachedValue()
         {
-            string result = await _cachePolicy.ExecuteAsync(context => _client.GetStringAsync(_url), new Context("CacheKey1")); // typically cache key would be dynamic
-            string result2 = await _cachePolicy.ExecuteAsync(context => _client.GetStringAsync(_url), new Context("CacheKey1"));
+            string result = await _cachePolicy.ExecuteAsync(async context => await _client.GetStringAsync(_url), new Context("CacheKey1")); // typically cache key would be dynamic
+            string result2 = await _cachePolicy.ExecuteAsync(async context => await _client.GetStringAsync(_url), new Context("CacheKey1"));
 
             Assert.IsTrue(!string.IsNullOrWhiteSpace(result));
             Assert.AreEqual(result, result2);
@@ -48,8 +48,8 @@ namespace ResiliencyTests
         [TestMethod]
         public async Task ExecuteAsync_WhenDataDoesNotExistInCache_ReturnsDifferentValue()
         {
-            string result = await _cachePolicy.ExecuteAsync(context => _client.GetStringAsync(_url), new Context("CacheKey1")); // typically cache key would be dynamic
-            string result2 = await _cachePolicy.ExecuteAsync(context => _client.GetStringAsync(_url), new Context("CacheKey2"));
+            string result = await _cachePolicy.ExecuteAsync(async context => await _client.GetStringAsync(_url), new Context("CacheKey1")); // typically cache key would be dynamic
+            string result2 = await _cachePolicy.ExecuteAsync(async context => await _client.GetStringAsync(_url), new Context("CacheKey2"));
 
             Assert.IsTrue(!string.IsNullOrWhiteSpace(result));
             Assert.IsTrue(!string.IsNullOrWhiteSpace(result2));

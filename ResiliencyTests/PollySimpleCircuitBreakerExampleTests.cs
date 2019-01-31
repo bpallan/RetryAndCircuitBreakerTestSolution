@@ -108,7 +108,7 @@ namespace ResiliencyTests
                 .FallbackAsync(context => fallback())
                 .WrapAsync(_circuitBreaker);
 
-            string response = await fallbackWrapper.ExecuteAsync(context => _client.GetStringAsync($"{_url}/{action}"), new Context()); 
+            string response = await fallbackWrapper.ExecuteAsync(async context => await _client.GetStringAsync($"{_url}/{action}"), new Context()); 
 
             return response;
         }

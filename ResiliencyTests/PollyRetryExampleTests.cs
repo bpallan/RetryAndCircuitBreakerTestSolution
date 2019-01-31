@@ -50,7 +50,7 @@ namespace ResiliencyTests
             string response = await Policy
                 .Handle<Exception>() // use HttpRequestException or call .HandleTransientHttpError if you only care about http errors
                 .RetryAsync(retries)
-                .ExecuteAsync(context => _client.GetStringAsync(_url), new Context());
+                .ExecuteAsync(async context => await _client.GetStringAsync(_url), new Context());
 
             return response;
         }
