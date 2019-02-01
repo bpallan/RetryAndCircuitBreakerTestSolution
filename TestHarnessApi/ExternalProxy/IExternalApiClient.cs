@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace ExternalApiProxy
+namespace TestHarnessApi.ExternalProxy
 {
     public interface IExternalApiClient
     {

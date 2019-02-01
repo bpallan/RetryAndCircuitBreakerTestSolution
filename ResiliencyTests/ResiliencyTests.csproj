@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ExternalApi\ExternalApi.csproj" />
     <ProjectReference Include="..\SimpleRetry\SimpleRetry.csproj" />
     <ProjectReference Include="..\TestHarnessApi\TestHarnessApi.csproj" />
   </ItemGroup>

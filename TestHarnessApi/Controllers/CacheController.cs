@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace TestHarnessApi.Controllers
 {
     [Route("api/cache")]
-    [ApiController]
+    [ApiController]    
     public class CacheController : ControllerBase
     {
         [HttpGet]
